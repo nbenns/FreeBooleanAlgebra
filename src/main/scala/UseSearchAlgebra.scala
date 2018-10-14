@@ -7,10 +7,10 @@ import searchalgebra.Site
 object UseSearchAlgebra extends App {
   val Sites: List[Site] = List(
     Site("bob.com", ZonedDateTime.parse("2018-03-27T05:00:00-04:00"), "blah blam bliz", "meow meow meow"),
-    Site("flatMap.com", ZonedDateTime.parse("2018-03-27T05:00:00-04:00"), "blah Scala bliz", "meow meow meow"),
-    Site("flatMap.com", ZonedDateTime.parse("2018-03-27T05:00:00-04:00"), "blah Scala Java", "meow meow meow"),
-    Site("flatMap.com", ZonedDateTime.parse("2018-03-27T05:00:00-04:00"), "blah Scala bliz", "meow spring meow"),
-    Site("flatMap.com", ZonedDateTime.parse("2017-03-27T05:00:00-04:00"), "blah Scala bliz", "meow meow meow")
+    Site("flatMap1.com", ZonedDateTime.parse("2018-03-27T05:00:00-04:00"), "blah Scala bliz", "meow meow meow"),
+    Site("flatMap2.com", ZonedDateTime.parse("2018-03-27T05:00:00-04:00"), "blah Scala Java", "meow meow meow"),
+    Site("flatMap3.com", ZonedDateTime.parse("2018-03-27T05:00:00-04:00"), "blah Scala bliz", "meow spring meow"),
+    Site("flatMap4.com", ZonedDateTime.parse("2017-03-27T05:00:00-04:00"), "blah Scala bliz", "meow meow meow")
   )
 
   val search = term("Scala") &
