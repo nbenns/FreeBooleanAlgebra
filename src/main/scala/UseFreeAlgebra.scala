@@ -33,19 +33,21 @@ object UseFreeAlgebra extends App {
   val outConverted: Int = interpret(convertedFreeProgram)
 
   /*
-   * Since our program is just data, we can optimize it first
-   */
-  val optFreeProgram1 = optimize(freeProgram1)
-
-  /*
+   * But that is really heavy just to interpret it.
    * We can convert and interpret in one step by calling run on our program with the conversion to Int
    */
   val out: Int = run(freeProgram1)(strToInt)
-  val outOptimized: Int = run(optFreeProgram1)(strToInt)
+
+  /*
+   * Since our program is just data, we can optimize it first
+   * and then run it.
+   */
+  val optimizedFreeProgram = optimize(freeProgram1)
+  val outOptimized: Int = run(optimizedFreeProgram)(strToInt)
 
   println(s"This is our program: $freeProgram1")
   println(s"This is our converted program: $convertedFreeProgram")
-  println(s"This is our optimized program: $optFreeProgram1")
+  println(s"This is our optimized program: $optimizedFreeProgram")
   println(s"This is our result: ${test(out)}")
   println(s"This is our converted result: ${outConverted.test}")
   println(s"This is our optimized result: ${outOptimized.test}")
