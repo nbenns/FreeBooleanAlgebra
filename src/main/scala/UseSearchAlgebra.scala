@@ -2,7 +2,8 @@ import java.time.ZonedDateTime
 
 import searchalgebra.Search._
 import boolalgebra.BooleanAlgebra._
-import searchalgebra.Site
+import boolalgebra.FreeBooleanAlgebra
+import searchalgebra.{Search, Site}
 
 object UseSearchAlgebra extends App {
   val Sites: List[Site] = List(
@@ -13,12 +14,13 @@ object UseSearchAlgebra extends App {
     Site("flatMap4.com", ZonedDateTime.parse("2017-03-27T05:00:00-04:00"), "blah Scala bliz", "meow meow meow")
   )
 
-  val search = term("Scala") &
+  val search: FreeBooleanAlgebra[Search] =
+    term("Scala") &
     after(ZonedDateTime.parse("2018-01-01T00:00:00Z")) &
     !(term("Java") | inText("spring")) &
     inUrl("flatMap")
 
-  println(s"This is our search program $search")
+  println(s"This is our search program: $search")
 
   val result = Sites.filter(evalSearch(search))
 
