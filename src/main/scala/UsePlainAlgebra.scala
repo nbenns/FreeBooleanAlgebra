@@ -17,7 +17,7 @@ object UsePlainAlgebra extends App {
    * We can also make use of extension methods
    * Giving us a nicer DSL
    */
-  val res1: Int = (5 and (fls not)) or (tru not)
+  val res1: Int = (5 & (!fls)) | (!tru)
 
   println(s"Result of our BooleanAlgebra of Int program using Extension Methods: $res1")
   println()
