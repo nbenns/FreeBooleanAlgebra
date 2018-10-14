@@ -4,8 +4,8 @@ import boolalgebra.BooleanAlgebra
 
 /*
  * We define our BooleanAlgebra over the Integers.
- * Anything > 0 is considered to be True
- * anything <= 0 is considered to be False
+ * Anything >= 1 is considered to be True
+ * anything < 1 is considered to be False
  */
 object IntBooleanAlgebra extends BooleanAlgebra[Int] {
   override def tru: Int = 1
