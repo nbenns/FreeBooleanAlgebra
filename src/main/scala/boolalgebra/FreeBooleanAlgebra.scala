@@ -29,7 +29,10 @@ object FreeBooleanAlgebra {
 
   def inject[A](a: A): FreeBooleanAlgebra[A] = Inject(a)
 
-  // The Free version of the algebra needs to have a valid typeclass instance of BooleanAlgebra
+  /*
+   * The Free version of the algebra needs to have a valid typeclass instance of BooleanAlgebra
+   * Here we simply define the implementation to use the data types we have created above.
+   */
   implicit def freeBooleanAlgebra[A]: BooleanAlgebra[FreeBooleanAlgebra[A]] = new BooleanAlgebra[FreeBooleanAlgebra[A]] {
     override def tru: FreeBooleanAlgebra[A] = Tru
     override def fls: FreeBooleanAlgebra[A] = Fls

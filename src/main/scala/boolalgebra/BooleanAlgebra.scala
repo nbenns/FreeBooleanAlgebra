@@ -47,7 +47,7 @@ object BooleanAlgebra {
 
   /*
    * Expose each of the functions of the typeclass as easily accessible functions
-   * which will just execute the typeclasses version of those functions
+   * which will just execute the typeclasses' version of those functions
    */
   def tru[A: BooleanAlgebra]: A = BooleanAlgebra[A].tru
   def fls[A: BooleanAlgebra]: A = BooleanAlgebra[A].fls
