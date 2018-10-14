@@ -1,7 +1,7 @@
 package boolalgebra
 
 /*
- * The Trait defines all the objects and functions within Boolean Algebra
+ * The Trait defines all the objects and functions within our Boolean Algebra
  */
 trait BooleanAlgebra[A] {
   def tru: A
