@@ -16,7 +16,7 @@ object UseFreeAlgebra extends App {
   val freeProgram0: FreeBooleanAlgebra[String] = or(and(inject("abcd"), not(fls)), not(tru))
 
   // Using Extension Methods
-  val freeProgram1: FreeBooleanAlgebra[String] = inject("abcd") & !fls | !tru
+  val freeProgram1: FreeBooleanAlgebra[String] = not(xor(tru, inject("abc")))//inject("abcd") & !fls | !tru
 
   /*
    * We then define how to convert String to Int
@@ -38,6 +38,6 @@ object UseFreeAlgebra extends App {
 
   println(s"This is our program: $freeProgram1")
   println(s"This is our optimized program: $optFreeProgram1")
-  println(s"This is our result: $out")
-  println(s"This is our optimized result: $outOptimized")
+  println(s"This is our result: ${test(out)}")
+  println(s"This is our optimized result: ${outOptimized.test}")
 }
