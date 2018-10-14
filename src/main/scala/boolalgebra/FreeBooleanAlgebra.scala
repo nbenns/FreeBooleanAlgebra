@@ -47,9 +47,72 @@ object FreeBooleanAlgebra {
   }
 
   /*
+   * We can convert a FreeBooleanAlgebra from type A to type B using a conversion function
+   * This unwraps the structure until it finds a value, then executes the conversion function
+   * and rewraps the structure
+   */
+  def convert[A, B](f: A => B)(fa: FreeBooleanAlgebra[A]): FreeBooleanAlgebra[B] = fa match {
+    case Inject(value) => Inject(f(value))
+    case Test(value) => convert(f)(value)
+    case Tru => Tru
+    case Fls => Fls
+    case Not(value) => Not(convert(f)(value))
+    case Or(freeLHS, freeRHS) => Or(convert(f)(freeLHS), convert(f)(freeRHS))
+    case And(freeLHS, freeRHS) => And(convert(f)(freeLHS), convert(f)(freeRHS))
+    case XOr(freeLHS, freeRHS) => XOr(convert(f)(freeLHS), convert(f)(freeRHS))
+    case NAnd(freeLHS, freeRHS) => NAnd(convert(f)(freeLHS), convert(f)(freeRHS))
+    case NOr(freeLHS, freeRHS) => NOr(convert(f)(freeLHS), convert(f)(freeRHS))
+    case NXOr(freeLHS, freeRHS) => NXOr(convert(f)(freeLHS), convert(f)(freeRHS))
+  }
+
+  /*
    * In order to get a result from the free version of the algebra we need to interpret it.
-   * To do that we need to convert the type embedded in it to a type that actually HAS a
-   * valid typeclass instance of BooleanAlgebra, then we can execute it.
+   * To execute it, we actually need a valid typeclass instance of BooleanAlgebra.
+   * We unwrap the structure and execute the typeclass instance against it.
+   */
+  def interpret[A: BooleanAlgebra](fa: FreeBooleanAlgebra[A]): A = fa match {
+    case Inject(value) => value
+    case Test(value) => BooleanAlgebra[A].test(interpret(value))
+    case Tru => BooleanAlgebra[A].tru
+    case Fls => BooleanAlgebra[A].fls
+    case Not(value) => BooleanAlgebra[A].not(interpret(value))
+    case Or(freeLHS, freeRHS) =>
+      val lhs = interpret(freeLHS)
+      val rhs = interpret(freeRHS)
+
+      BooleanAlgebra[A].or(lhs, rhs)
+    case And(freeLHS, freeRHS) =>
+      val lhs = interpret(freeLHS)
+      val rhs = interpret(freeRHS)
+
+      BooleanAlgebra[A].and(lhs, rhs)
+    case XOr(freeLHS, freeRHS) =>
+      val lhs = interpret(freeLHS)
+      val rhs = interpret(freeRHS)
+
+      BooleanAlgebra[A].xor(lhs, rhs)
+    case NAnd(freeLHS, freeRHS) =>
+      val lhs = interpret(freeLHS)
+      val rhs = interpret(freeRHS)
+
+      BooleanAlgebra[A].nand(lhs, rhs)
+    case NOr(freeLHS, freeRHS) =>
+      val lhs = interpret(freeLHS)
+      val rhs = interpret(freeRHS)
+
+      BooleanAlgebra[A].nor(lhs, rhs)
+    case NXOr(freeLHS, freeRHS) =>
+      val lhs = interpret(freeLHS)
+      val rhs = interpret(freeRHS)
+
+      BooleanAlgebra[A].nxor(lhs, rhs)
+  }
+
+  /*
+   * Run does both the conversion and the interpret step and is really just an optimization
+   * of the composition of those two functions.
+   * It is really heavy to unwrap and rewrap the structure when converting it, just
+   * to unwrap it again when we execute it.
    */
   def run[A, B: BooleanAlgebra](fb: FreeBooleanAlgebra[A])(f: A => B): B = fb match {
     case Inject(value) => f(value)
