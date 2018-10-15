@@ -165,13 +165,22 @@ object FreeBooleanAlgebra {
         case Fls => Fls
         case value => Test(value)
       }
+
     case Not(value) =>
       optimize(value) match {
         case Fls => Tru
         case Tru => Fls
         case Not(v) => v
-        case And(lhs, rhs) => optimize(NAnd(lhs, rhs))
-        case Or(lhs, rhs) => optimize(NOr(lhs, rhs))
+        case And(lhs, rhs) =>
+          (lhs, rhs) match {
+            case (Not(l), Not(r)) => optimize(Or(l, r))
+            case _ => optimize(NAnd(lhs, rhs))
+          }
+        case Or(lhs, rhs) =>
+          (lhs, rhs) match {
+            case (Not(l), Not(r)) => optimize(And(l, r))
+            case _ => optimize(NOr(lhs, rhs))
+          }
         case XOr(lhs, rhs) => optimize(NXOr(lhs, rhs))
         case optv => Not(optv)
       }
