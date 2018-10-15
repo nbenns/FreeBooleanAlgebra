@@ -193,7 +193,13 @@ object FreeBooleanAlgebra {
           optimize(rhs) match {
             case Fls => left
             case Tru => Tru
-            case right => Or(left, right)
+            case right =>
+              (left, right) match {
+                case (Not(l), Not(r)) => optimize(Not(And(l, r)))
+                case (x, Not(y)) if x == y => Tru
+                case (Not(x), y) if x == y => Tru
+                case _ => Or(left, right)
+              }
           }
       }
 
@@ -205,7 +211,13 @@ object FreeBooleanAlgebra {
           optimize(rhs) match {
             case Fls => Fls
             case Tru => left
-            case right => And(left, right)
+            case right =>
+              (left, right) match {
+                case (Not(l), Not(r)) => optimize(Not(Or(l, r)))
+                case (x, Not(y)) if x == y => Fls
+                case (Not(x), y) if x == y => Fls
+                case _ => And(left, right)
+              }
           }
       }
 
