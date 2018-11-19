@@ -8,9 +8,26 @@ import boolalgebra.BooleanAlgebra
  * anything < 1 is considered to be False
  */
 object IntBooleanAlgebra extends BooleanAlgebra[Int] {
+  private def normalize(value: Int): Int =
+    if (value > 0) tru
+    else fls
+
   override def tru: Int = 1
   override def fls: Int = 0
-  override def test(a: Int): Int =
-    if (a >= tru) tru
+
+  override def not(value: Int): Int =
+    if (normalize(value) == tru) fls
+    else tru
+
+  override def and(lhs: Int, rhs: Int): Int =
+    if ((normalize(lhs) + normalize(rhs)) == 2) tru
+    else fls
+
+  override def or(lhs: Int, rhs: Int): Int =
+    if ((normalize(lhs) + normalize(rhs)) > 0) tru
+    else fls
+
+  override def xor(lhs: Int, rhs: Int): Int =
+    if ((normalize(lhs) + normalize(rhs)) == 1) tru
     else fls
 }

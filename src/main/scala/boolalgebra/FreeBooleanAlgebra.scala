@@ -15,7 +15,6 @@ object FreeBooleanAlgebra {
    */
   private case object Tru extends FreeBooleanAlgebra[Nothing]
   private case object Fls extends FreeBooleanAlgebra[Nothing]
-  private case class Test[A](value: FreeBooleanAlgebra[A]) extends FreeBooleanAlgebra[A]
   private case class Not[A](value: FreeBooleanAlgebra[A]) extends FreeBooleanAlgebra[A]
   private case class And[A](lhs: FreeBooleanAlgebra[A], rhs: FreeBooleanAlgebra[A]) extends FreeBooleanAlgebra[A]
   private case class Or[A](lhs: FreeBooleanAlgebra[A], rhs: FreeBooleanAlgebra[A]) extends FreeBooleanAlgebra[A]
@@ -43,7 +42,6 @@ object FreeBooleanAlgebra {
     override def nand(lhs: FreeBooleanAlgebra[A], rhs: FreeBooleanAlgebra[A]): FreeBooleanAlgebra[A] = NAnd(lhs, rhs)
     override def nor(lhs: FreeBooleanAlgebra[A], rhs: FreeBooleanAlgebra[A]): FreeBooleanAlgebra[A] = NOr(lhs, rhs)
     override def nxor(lhs: FreeBooleanAlgebra[A], rhs: FreeBooleanAlgebra[A]): FreeBooleanAlgebra[A] = NXOr(lhs, rhs)
-    override def test(a: FreeBooleanAlgebra[A]): FreeBooleanAlgebra[A] = Test(a)
   }
 
   /*
@@ -53,7 +51,6 @@ object FreeBooleanAlgebra {
    */
   def convert[A, B](f: A => B)(fa: FreeBooleanAlgebra[A]): FreeBooleanAlgebra[B] = fa match {
     case Inject(value) => Inject(f(value))
-    case Test(value) => convert(f)(value)
     case Tru => Tru
     case Fls => Fls
     case Not(value) => Not(convert(f)(value))
@@ -72,7 +69,6 @@ object FreeBooleanAlgebra {
    */
   def interpret[A: BooleanAlgebra](fa: FreeBooleanAlgebra[A]): A = fa match {
     case Inject(value) => value
-    case Test(value) => BooleanAlgebra[A].test(interpret(value))
     case Tru => BooleanAlgebra[A].tru
     case Fls => BooleanAlgebra[A].fls
     case Not(value) => BooleanAlgebra[A].not(interpret(value))
@@ -116,7 +112,6 @@ object FreeBooleanAlgebra {
    */
   def run[A, B: BooleanAlgebra](fb: FreeBooleanAlgebra[A])(f: A => B): B = fb match {
     case Inject(value) => f(value)
-    case Test(value) => BooleanAlgebra[B].test(run(value)(f))
     case Tru => BooleanAlgebra[B].tru
     case Fls => BooleanAlgebra[B].fls
     case Not(value) => BooleanAlgebra[B].not(run(value)(f))
@@ -159,12 +154,6 @@ object FreeBooleanAlgebra {
     case Inject(v) => Inject(v)
     case Tru => Tru
     case Fls => Fls
-    case Test(v) =>
-      optimize(v) match {
-        case Tru => Tru
-        case Fls => Fls
-        case value => Test(value)
-      }
 
     case Not(value) =>
       optimize(value) match {
