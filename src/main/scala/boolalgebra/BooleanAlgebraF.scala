@@ -44,76 +44,75 @@ object BooleanAlgebraF {
     case And(lhs, rhs) => BooleanAlgebra[A].and(lhs, rhs)
   }
 
+  def optimizer[A]: FAlgebra[BooleanAlgebraF, FBAlg[A]] = {
+    case Tru() => Free(Tru())
+    case Fls() => Free(Fls())
+
+    case Not(value) =>
+      value match {
+        case Pure(v) => Pure(v)
+        case Free(f2) => f2 match {
+          case Fls() => Free(Tru())
+          case Tru() => Free(Fls())
+          case Not(v) => v
+          case optv => Free(Not(Free(optv)))
+        }
+      }
+
+    case Or(lhs, rhs) =>
+      lhs match {
+        case Pure(pureLeft) => rhs match {
+          case Pure(pureRight) => Free(Or(Pure(pureLeft), Pure(pureRight)))
+          case Free(freeRight) => freeRight match {
+            case Fls() => Pure(pureLeft)
+            case Tru() => Free(Tru())
+            case right => Free(Or(Pure(pureLeft), Free(right)))
+          }
+        }
+        case Free(freeLeft) => freeLeft match {
+          case Fls() => rhs
+          case Tru() => Free(Tru())
+          case left =>
+            rhs match {
+              case Pure(pureRight) => Free(Or(Free(left), Pure(pureRight)))
+              case Free(freeRight) => freeRight match {
+                case Fls() => Free(left)
+                case Tru() => Free(Tru())
+                case right => Free(Or(Free(left), Free(right)))
+              }
+            }
+        }
+      }
+
+    case And(lhs, rhs) =>
+      lhs match {
+        case Pure(pureLeft) => rhs match {
+          case Pure(pureRight) => Free(And(Pure(pureLeft), Pure(pureRight)))
+          case Free(freeRight) => freeRight match {
+            case Fls() => Free(Fls())
+            case Tru() => Pure(pureLeft)
+            case right => Free(And(Pure(pureLeft), Free(right)))
+          }
+        }
+        case Free(freeLeft) => freeLeft match {
+          case Fls() => Free(Fls())
+          case Tru() => rhs
+          case left =>
+            rhs match {
+              case Pure(pureRight) => Free(And(Free(left), Pure(pureRight)))
+              case Free(freeRight) => freeRight match {
+                case Fls() => Free(Fls())
+                case Tru() => Free(left)
+                case right => Free(And(Free(left), Free(right)))
+              }
+            }
+        }
+      }
+  }
+
   def interpret[A: BooleanAlgebra](ff: FBAlg[A]): A = ff.cata(interpreter[A])
 
   def run[A, B: BooleanAlgebra](ff: FBAlg[A])(f: A => B): B = ff.map(f).cata(interpreter[B])
 
-  def optimize[A](fb: FBAlg[A]): FBAlg[A] = fb match {
-    case Pure(v) => Pure(v)
-    case Free(free) => free match {
-      case Tru() => Free(Tru())
-      case Fls() => Free(Fls())
-
-      case Not(value) =>
-        optimize(value) match {
-          case Pure(v) => Pure(v)
-          case Free(f2) => f2 match {
-            case Fls() => Free(Tru())
-            case Tru() => Free(Fls())
-            case Not(v) => v
-            case optv => Free(Not(Free(optv)))
-          }
-        }
-
-      case Or(lhs, rhs) =>
-        optimize(lhs) match {
-          case Pure(pureLeft) => optimize(rhs) match {
-            case Pure(pureRight) => Free(Or(Pure(pureLeft), Pure(pureRight)))
-            case Free(freeRight) => freeRight match {
-              case Fls() => Pure(pureLeft)
-              case Tru() => Free(Tru())
-              case right => Free(Or(Pure(pureLeft), Free(right)))
-            }
-          }
-          case Free(freeLeft) => freeLeft match {
-            case Fls() => optimize(rhs)
-            case Tru() => Free(Tru())
-            case left =>
-              optimize(rhs) match {
-                case Pure(pureRight) => Free(Or(Free(left), Pure(pureRight)))
-                case Free(freeRight) => freeRight match {
-                  case Fls() => Free(left)
-                  case Tru() => Free(Tru())
-                  case right => Free(Or(Free(left), Free(right)))
-                }
-              }
-          }
-        }
-
-      case And(lhs, rhs) =>
-        optimize(lhs) match {
-          case Pure(pureLeft) => optimize(rhs) match {
-            case Pure(pureRight) => Free(And(Pure(pureLeft), Pure(pureRight)))
-            case Free(freeRight) => freeRight match {
-              case Fls() => Free(Fls())
-              case Tru() => Pure(pureLeft)
-              case right => Free(And(Pure(pureLeft), Free(right)))
-            }
-          }
-          case Free(freeLeft) => freeLeft match {
-            case Fls() => Free(Fls())
-            case Tru() => optimize(rhs)
-            case left =>
-              optimize(rhs) match {
-                case Pure(pureRight) => Free(And(Free(left), Pure(pureRight)))
-                case Free(freeRight) => freeRight match {
-                  case Fls() => Free(Fls())
-                  case Tru() => Free(left)
-                  case right => Free(And(Free(left), Free(right)))
-                }
-              }
-          }
-        }
-    }
-  }
+  def optimize[A](fbAlg: FBAlg[A]): FBAlg[A] = fbAlg.map(a => inject(a)).cata(optimizer)
 }
