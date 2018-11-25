@@ -18,10 +18,6 @@ object FreeBooleanAlgebra {
   private case class Not[A](value: FreeBooleanAlgebra[A]) extends FreeBooleanAlgebra[A]
   private case class And[A](lhs: FreeBooleanAlgebra[A], rhs: FreeBooleanAlgebra[A]) extends FreeBooleanAlgebra[A]
   private case class Or[A](lhs: FreeBooleanAlgebra[A], rhs: FreeBooleanAlgebra[A]) extends FreeBooleanAlgebra[A]
-  private case class XOr[A](lhs: FreeBooleanAlgebra[A], rhs: FreeBooleanAlgebra[A]) extends FreeBooleanAlgebra[A]
-  private case class NAnd[A](lhs: FreeBooleanAlgebra[A], rhs: FreeBooleanAlgebra[A]) extends FreeBooleanAlgebra[A]
-  private case class NOr[A](lhs: FreeBooleanAlgebra[A], rhs: FreeBooleanAlgebra[A]) extends FreeBooleanAlgebra[A]
-  private case class NXOr[A](lhs: FreeBooleanAlgebra[A], rhs: FreeBooleanAlgebra[A]) extends FreeBooleanAlgebra[A]
 
   // Add Inject to inject values into the free version of the algebra from the outside world
   private case class Inject[A](value: A) extends FreeBooleanAlgebra[A]
@@ -38,10 +34,6 @@ object FreeBooleanAlgebra {
     override def not(value: FreeBooleanAlgebra[A]): FreeBooleanAlgebra[A] = Not(value)
     override def and(lhs: FreeBooleanAlgebra[A], rhs: FreeBooleanAlgebra[A]): FreeBooleanAlgebra[A] = And(lhs, rhs)
     override def or(lhs: FreeBooleanAlgebra[A], rhs: FreeBooleanAlgebra[A]): FreeBooleanAlgebra[A] = Or(lhs, rhs)
-    override def xor(lhs: FreeBooleanAlgebra[A], rhs: FreeBooleanAlgebra[A]): FreeBooleanAlgebra[A] = XOr(lhs, rhs)
-    override def nand(lhs: FreeBooleanAlgebra[A], rhs: FreeBooleanAlgebra[A]): FreeBooleanAlgebra[A] = NAnd(lhs, rhs)
-    override def nor(lhs: FreeBooleanAlgebra[A], rhs: FreeBooleanAlgebra[A]): FreeBooleanAlgebra[A] = NOr(lhs, rhs)
-    override def nxor(lhs: FreeBooleanAlgebra[A], rhs: FreeBooleanAlgebra[A]): FreeBooleanAlgebra[A] = NXOr(lhs, rhs)
   }
 
   /*
@@ -56,10 +48,6 @@ object FreeBooleanAlgebra {
     case Not(value) => Not(convert(f)(value))
     case Or(freeLHS, freeRHS) => Or(convert(f)(freeLHS), convert(f)(freeRHS))
     case And(freeLHS, freeRHS) => And(convert(f)(freeLHS), convert(f)(freeRHS))
-    case XOr(freeLHS, freeRHS) => XOr(convert(f)(freeLHS), convert(f)(freeRHS))
-    case NAnd(freeLHS, freeRHS) => NAnd(convert(f)(freeLHS), convert(f)(freeRHS))
-    case NOr(freeLHS, freeRHS) => NOr(convert(f)(freeLHS), convert(f)(freeRHS))
-    case NXOr(freeLHS, freeRHS) => NXOr(convert(f)(freeLHS), convert(f)(freeRHS))
   }
 
   /*
@@ -82,26 +70,6 @@ object FreeBooleanAlgebra {
       val rhs = interpret(freeRHS)
 
       BooleanAlgebra[A].and(lhs, rhs)
-    case XOr(freeLHS, freeRHS) =>
-      val lhs = interpret(freeLHS)
-      val rhs = interpret(freeRHS)
-
-      BooleanAlgebra[A].xor(lhs, rhs)
-    case NAnd(freeLHS, freeRHS) =>
-      val lhs = interpret(freeLHS)
-      val rhs = interpret(freeRHS)
-
-      BooleanAlgebra[A].nand(lhs, rhs)
-    case NOr(freeLHS, freeRHS) =>
-      val lhs = interpret(freeLHS)
-      val rhs = interpret(freeRHS)
-
-      BooleanAlgebra[A].nor(lhs, rhs)
-    case NXOr(freeLHS, freeRHS) =>
-      val lhs = interpret(freeLHS)
-      val rhs = interpret(freeRHS)
-
-      BooleanAlgebra[A].nxor(lhs, rhs)
   }
 
   /*
@@ -125,26 +93,6 @@ object FreeBooleanAlgebra {
       val rhs = run(freeRHS)(f)
 
       BooleanAlgebra[B].and(lhs, rhs)
-    case XOr(freeLHS, freeRHS) =>
-      val lhs = run(freeLHS)(f)
-      val rhs = run(freeRHS)(f)
-
-      BooleanAlgebra[B].xor(lhs, rhs)
-    case NAnd(freeLHS, freeRHS) =>
-      val lhs = run(freeLHS)(f)
-      val rhs = run(freeRHS)(f)
-
-      BooleanAlgebra[B].nand(lhs, rhs)
-    case NOr(freeLHS, freeRHS) =>
-      val lhs = run(freeLHS)(f)
-      val rhs = run(freeRHS)(f)
-
-      BooleanAlgebra[B].nor(lhs, rhs)
-    case NXOr(freeLHS, freeRHS) =>
-      val lhs = run(freeLHS)(f)
-      val rhs = run(freeRHS)(f)
-
-      BooleanAlgebra[B].nxor(lhs, rhs)
   }
 
   /*
@@ -160,17 +108,6 @@ object FreeBooleanAlgebra {
         case Fls => Tru
         case Tru => Fls
         case Not(v) => v
-        case And(lhs, rhs) =>
-          (lhs, rhs) match {
-            case (Not(l), Not(r)) => optimize(Or(l, r))
-            case _ => optimize(NAnd(lhs, rhs))
-          }
-        case Or(lhs, rhs) =>
-          (lhs, rhs) match {
-            case (Not(l), Not(r)) => optimize(And(l, r))
-            case _ => optimize(NOr(lhs, rhs))
-          }
-        case XOr(lhs, rhs) => optimize(NXOr(lhs, rhs))
         case optv => Not(optv)
       }
 
@@ -207,51 +144,6 @@ object FreeBooleanAlgebra {
                 case (Not(x), y) if x == y => Fls
                 case _ => And(left, right)
               }
-          }
-      }
-
-    case XOr(lhs, rhs) =>
-      (optimize(lhs), optimize(rhs)) match {
-        case (Tru, right) => optimize(Not(right))
-        case (Fls, right) => right
-        case (left, Tru) => optimize(Not(left))
-        case (left, Fls) => left
-        case (left, right) => XOr(left, right)
-      }
-
-    case NAnd(lhs, rhs) =>
-      optimize(lhs) match {
-        case Tru => optimize(Not(rhs))
-        case Fls => Tru
-        case left =>
-          optimize(rhs) match {
-            case Tru => optimize(Not(left))
-            case Fls => left
-            case right => NAnd(left, right)
-          }
-      }
-
-    case NOr(lhs, rhs) =>
-      optimize(lhs) match {
-        case Tru => Fls
-        case Fls => optimize(Not(rhs))
-        case left =>
-          optimize(rhs) match {
-            case Tru => Fls
-            case Fls => optimize(Not(left))
-            case right => NOr(left, right)
-          }
-      }
-
-    case NXOr(lhs, rhs) =>
-      optimize(lhs) match {
-        case Tru => optimize(rhs)
-        case Fls => optimize(Not(rhs))
-        case left =>
-          optimize(rhs) match {
-            case Tru => left
-            case Fls => optimize(Not(left))
-            case right => NXOr(left, right)
           }
       }
   }

@@ -26,8 +26,4 @@ object IntBooleanAlgebra extends BooleanAlgebra[Int] {
   override def or(lhs: Int, rhs: Int): Int =
     if ((normalize(lhs) + normalize(rhs)) > 0) tru
     else fls
-
-  override def xor(lhs: Int, rhs: Int): Int =
-    if ((normalize(lhs) + normalize(rhs)) == 1) tru
-    else fls
 }

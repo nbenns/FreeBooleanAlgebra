@@ -1,10 +1,9 @@
-import boolalgebra.BooleanAlgebraF
-import BooleanAlgebraF._
-import effect._
-import Functor._
-import boolalgebra.instances.IntBooleanAlgebra
-import recursion.Free
 import boolalgebra.BooleanAlgebra._
+import boolalgebra.BooleanAlgebraF
+import boolalgebra.BooleanAlgebraF._
+import boolalgebra.instances.IntBooleanAlgebra
+import effect.Functor._
+import effect._
 
 object UseBooleanAlgebraF extends App {
   /*
@@ -14,10 +13,10 @@ object UseBooleanAlgebraF extends App {
    */
 
   // Using Functions
-  val freeProgram0: Free[BooleanAlgebraF, String] = or(and(inject("abcd"), not(fls[Free[BooleanAlgebraF, String]])), not(tru[Free[BooleanAlgebraF, String]]))
+  val freeProgram0: FBAlg[String] = or(and(inject("abcd"), not(fls[FBAlg[String]])), not(tru[FBAlg[String]]))
 
   // Using Extension Methods
-  val freeProgram1: Free[BooleanAlgebraF, String] = inject("abcd") & !fls[Free[BooleanAlgebraF, String]] | !tru[Free[BooleanAlgebraF, String]]
+  val freeProgram1: FBAlg[String] = inject("abcd") & !fls[FBAlg[String]] | !tru[FBAlg[String]]
 
   /*
    * We then define how to convert String to Int
@@ -30,7 +29,7 @@ object UseBooleanAlgebraF extends App {
    * We can convert our free program of String to one of Int using "convert" and
    * providing a conversion function from String => Int
    */
-  val convertedFreeProgram = freeProgram1.map(strToInt)
+  val convertedFreeProgram: FBAlg[Int] = freeProgram1.map(strToInt)
   val outConverted: Int = interpret(convertedFreeProgram)
 
   /*
@@ -43,13 +42,13 @@ object UseBooleanAlgebraF extends App {
    * Since our program is just data, we can optimize it first
    * and then run it.
    */
-  //val optimizedFreeProgram = freeProgram1.cata(optimizer)
-  //val outOptimized: Int = run(optimizedFreeProgram)(strToInt)
+  val optimizedFreeProgram = optimize(freeProgram1)
+  val outOptimized: Int = run(optimizedFreeProgram)(strToInt)
 
   println(s"This is our program: $freeProgram1")
   println(s"This is our converted program: $convertedFreeProgram")
-  //println(s"This is our optimized program: $optimizedFreeProgram")
+  println(s"This is our optimized program: $optimizedFreeProgram")
   println(s"This is our result: $out")
   println(s"This is our converted result: $outConverted")
-  //println(s"This is our optimized result: $outOptimized")
+  println(s"This is our optimized result: $outOptimized")
 }
