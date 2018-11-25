@@ -1,5 +1,7 @@
 package recursion
 
+import effect.Monad
+
 import scala.language.higherKinds
 
 sealed trait FreeF[F[_], A]
@@ -24,6 +26,15 @@ object FreeF {
     override def map[A, B](fa: FreeF[F, A])(f: A => B): FreeF[F, B] = fa match {
       case Pure(value) => Pure(f(value))
       case Free(free) => Free(free.map(map(_)(f)))
+    }
+  }
+
+  implicit def freeMonad[F[_]: Functor]: Monad[FreeF[F, ?]] = new Monad[FreeF[F, ?]] {
+    override def pure[A](a: A): FreeF[F, A] = Pure(a)
+
+    override def flatMap[A, B](fa: FreeF[F, A])(f: A => FreeF[F, B]): FreeF[F, B] = fa match {
+      case Pure(v) => f(v)
+      case Free(m) => Free(m.map(flatMap(_)(f)))
     }
   }
 }
