@@ -1,9 +1,9 @@
 package boolalgebra
 
-import effect.{Functor, Monad}
+import effect.CoFlatMap._
+import effect.Functor
 import Functor._
-import Monad._
-import recursion.{Free, FAlgebra, FreeF, Pure}
+import recursion.{FAlgebra, Free, FreeF, Pure}
 import FreeF._
 
 sealed trait BooleanAlgebraF[A]
@@ -45,7 +45,8 @@ object BooleanAlgebraF {
     case And(lhs, rhs) => BooleanAlgebra[A].and(lhs, rhs)
   }
 
-  def notOptimizer[A]: FAlgebra[BooleanAlgebraF, FBAlg[A]] = {
+  // Can't figure out how to split this and still get it to work.
+  def optimizer[A]: FAlgebra[BooleanAlgebraF, FBAlg[A]] = {
     case Not(value) =>
       value match {
         case Pure(v) => Pure(v)
@@ -56,10 +57,6 @@ object BooleanAlgebraF {
           case optv => Free(Not(Free(optv)))
         }
       }
-    case other => Free(other)
-  }
-
-  def orOptimizer[A]: FAlgebra[BooleanAlgebraF, FBAlg[A]] = {
     case Or(lhs, rhs) =>
       lhs match {
         case Pure(pureLeft) => rhs match {
@@ -84,10 +81,6 @@ object BooleanAlgebraF {
             }
         }
       }
-    case other => Free(other)
-  }
-
-  def andOptimizer[A]: FAlgebra[BooleanAlgebraF, FBAlg[A]] = {
     case And(lhs, rhs) =>
       lhs match {
         case Pure(pureLeft) => rhs match {
@@ -119,9 +112,5 @@ object BooleanAlgebraF {
 
   def run[A, B: BooleanAlgebra](ff: FBAlg[A])(f: A => B): B = ff.map(f).cata(interpreter[B])
 
-  def optimize[A](fbAlg: FBAlg[A]): FBAlg[A] =
-    fbAlg
-      .map(inject).cata(notOptimizer)
-      .map(inject).cata(orOptimizer)
-      .map(inject).cata(andOptimizer)
+  def optimize[A](fbAlg: FBAlg[A]): FBAlg[A] = fbAlg.duplicate.cata(optimizer)
 }

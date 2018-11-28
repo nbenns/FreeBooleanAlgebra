@@ -1,9 +1,7 @@
 import boolalgebra.BooleanAlgebra._
-import boolalgebra.BooleanAlgebraF
 import boolalgebra.BooleanAlgebraF._
 import boolalgebra.instances.IntBooleanAlgebra
 import effect.Functor._
-import effect._
 
 object UseBooleanAlgebraF extends App {
   /*
