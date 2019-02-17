@@ -1,7 +1,9 @@
 package searchalgebra
 
 import java.time.ZonedDateTime
-import boolalgebra.FreeBooleanAlgebra
+
+import boolalgebra.BooleanAlgebraF
+import boolalgebra.BooleanAlgebraF.FBAlg
 
 object SiteSearch {
   private case class Term(t: String) extends Search[Site]
@@ -9,10 +11,10 @@ object SiteSearch {
   private case class InText(t: String) extends Search[Site]
   private case class InUrl(url: String) extends Search[Site]
 
-  def term(t: String): FreeBooleanAlgebra[Search[Site]] = FreeBooleanAlgebra.inject(Term(t))
-  def after(date: ZonedDateTime): FreeBooleanAlgebra[Search[Site]] = FreeBooleanAlgebra.inject(After(date))
-  def inText(t: String): FreeBooleanAlgebra[Search[Site]] = FreeBooleanAlgebra.inject(InText(t))
-  def inUrl(url: String): FreeBooleanAlgebra[Search[Site]] = FreeBooleanAlgebra.inject(InUrl(url))
+  def term(t: String): FBAlg[Search[Site]] = BooleanAlgebraF.inject(Term(t))
+  def after(date: ZonedDateTime): FBAlg[Search[Site]] = BooleanAlgebraF.inject(After(date))
+  def inText(t: String): FBAlg[Search[Site]] = BooleanAlgebraF.inject(InText(t))
+  def inUrl(url: String): FBAlg[Search[Site]] = BooleanAlgebraF.inject(InUrl(url))
 
   implicit val siteEvaluate: EvaluateSearch[Site] = new EvaluateSearch[Site] {
     override def evalSearch(site: Site)(search: Search[Site]): Boolean = search match {

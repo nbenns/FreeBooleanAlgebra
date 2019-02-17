@@ -1,7 +1,8 @@
 package searchalgebra
 
-import boolalgebra.{BooleanAlgebra, FreeBooleanAlgebra}
+import boolalgebra.BooleanAlgebraF.FBAlg
 import boolalgebra.instances.BooleanBooleanAlgebra
+import boolalgebra.{BooleanAlgebra, BooleanAlgebraF}
 
 trait EvaluateSearch[A] {
   def evalSearch(a: A)(search: Search[A]): Boolean
@@ -10,9 +11,9 @@ trait EvaluateSearch[A] {
 object EvaluateSearch {
   def apply[A](implicit evaluate: EvaluateSearch[A]): EvaluateSearch[A] = evaluate
 
-  def evalSearch[A: EvaluateSearch](pred: FreeBooleanAlgebra[Search[A]])(a: A): Boolean = {
+  def evalSearch[A: EvaluateSearch](pred: FBAlg[Search[A]])(a: A): Boolean = {
     implicit val alg: BooleanAlgebra[Boolean] = BooleanBooleanAlgebra
 
-    FreeBooleanAlgebra.run(pred)(EvaluateSearch[A].evalSearch(a))
+    BooleanAlgebraF.run(pred)(EvaluateSearch[A].evalSearch(a))
   }
 }
