@@ -1,7 +1,6 @@
 package searchalgebra
 
 import java.time.ZonedDateTime
-
 import boolalgebra.BooleanAlgebraF
 import boolalgebra.BooleanAlgebraF.FBAlg
 

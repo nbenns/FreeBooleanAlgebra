@@ -1,5 +1,7 @@
 package boolalgebra
 
+import effect.Functor
+
 /*
  * The free version of the BooleanAlgebra typeclass is used to wrap values
  * that we don't have typeclass instances for.
@@ -37,17 +39,19 @@ object FreeBooleanAlgebra {
   }
 
   /*
-   * We can convert a FreeBooleanAlgebra from type A to type B using a conversion function
+   * We can convert a FreeBooleanAlgebra from type A to type B using a functor
    * This unwraps the structure until it finds a value, then executes the conversion function
    * and rewraps the structure
    */
-  def convert[A, B](f: A => B)(fa: FreeBooleanAlgebra[A]): FreeBooleanAlgebra[B] = fa match {
-    case Inject(value) => Inject(f(value))
-    case Tru => Tru
-    case Fls => Fls
-    case Not(value) => Not(convert(f)(value))
-    case Or(freeLHS, freeRHS) => Or(convert(f)(freeLHS), convert(f)(freeRHS))
-    case And(freeLHS, freeRHS) => And(convert(f)(freeLHS), convert(f)(freeRHS))
+  implicit val freeBooleanAlgebraFunctor: Functor[FreeBooleanAlgebra] = new Functor[FreeBooleanAlgebra] {
+    override def map[A, B](fa: FreeBooleanAlgebra[A])(f: A => B): FreeBooleanAlgebra[B] = fa match {
+      case Inject(value) => Inject(f(value))
+      case Tru => Tru
+      case Fls => Fls
+      case Not(value) => Not(map(value)(f))
+      case Or(freeLHS, freeRHS) => Or(map(freeLHS)(f), map(freeRHS)(f))
+      case And(freeLHS, freeRHS) => And(map(freeLHS)(f), map(freeRHS)(f))
+    }
   }
 
   /*

@@ -2,6 +2,7 @@ import boolalgebra.BooleanAlgebra._
 import boolalgebra.FreeBooleanAlgebra
 import boolalgebra.FreeBooleanAlgebra._
 import boolalgebra.instances.IntBooleanAlgebra
+import effect.Functor._
 
 import scala.language.postfixOps
 
@@ -26,10 +27,10 @@ object UseFreeAlgebra extends App {
   implicit val intBoolAlg = IntBooleanAlgebra
 
   /*
-   * We can convert our free program of String to one of Int using "convert" and
+   * We can convert our free program of String to one of Int using a functor and
    * providing a conversion function from String => Int
    */
-  val convertedFreeProgram: FreeBooleanAlgebra[Int] = convert(strToInt)(freeProgram1)
+  val convertedFreeProgram: FreeBooleanAlgebra[Int] = freeProgram1.map(strToInt)
   val outConverted: Int = interpret(convertedFreeProgram)
 
   /*
