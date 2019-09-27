@@ -10,13 +10,13 @@ case class Pure[F[_], A](value: A) extends Free[F, A]
 case class Impure[F[_], A](unFree: F[Free[F, A]]) extends Free[F, A]
 
 object Free {
-  def cataMorphism[F[_]: Functor, A](ff: Free[F, A], f: FAlgebra[F, A]): A = ff match {
+  def cataMorphism[F[_]: Functor, A](f: FAlgebra[F, A])(ff: Free[F, A]): A = ff match {
     case Pure(value) => value
-    case Impure(free) => f(free.map(cataMorphism(_, f)))
+    case Impure(free) => f(free.map(cataMorphism(f)))
   }
 
   implicit class FreeOps[F[_]: Functor, A](ff: Free[F, A]) {
-    def cata(f: FAlgebra[F, A]): A = cataMorphism[F, A](ff, f)
+    def cata(f: FAlgebra[F, A]): A = cataMorphism[F, A](f)(ff)
   }
 
   implicit def freeMonad[F[_]: Functor]: Monad[Free[F, ?]] = new Monad[Free[F, ?]] {
