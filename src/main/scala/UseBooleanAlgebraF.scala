@@ -11,10 +11,10 @@ object UseBooleanAlgebraF extends App {
    */
 
   // Using Functions
-  val freeProgram0: FBAlg[String] = or(and(inject("abcd"), not(fls[FBAlg[String]])), not(tru[FBAlg[String]]))
+  val freeProgram0: FBAlg[String] = or(and(inject("abcd"), not(fls)), not(tru))
 
   // Using Extension Methods
-  val freeProgram1: FBAlg[String] = inject("abcd") & !fls[FBAlg[String]] | !tru[FBAlg[String]]
+  val freeProgram1: FBAlg[String] = inject("abcd") & !fls | !tru
 
   /*
    * We then define how to convert String to Int

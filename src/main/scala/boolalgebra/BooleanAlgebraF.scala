@@ -2,22 +2,28 @@ package boolalgebra
 
 import effect.CoFlatMap._
 import effect.Functor
-import Functor._
-import recursion.{FAlgebra, Impure, Free, Pure}
-import Free._
+import effect.Functor._
+import recursion.Free._
+import recursion.{FAlgebra, Free}
 
-sealed trait BooleanAlgebraF[A]
+sealed trait BooleanAlgebraF[+A]
 
 object BooleanAlgebraF {
-  type FBAlg[A] = Free[BooleanAlgebraF, A]
+  type FBAlg[+A] = Free[BooleanAlgebraF, A]
 
-  private case class Tru[A]() extends BooleanAlgebraF[A]
-  private case class Fls[A]() extends BooleanAlgebraF[A]
+  private case class Tru() extends BooleanAlgebraF[Nothing]
+  private case class Fls() extends BooleanAlgebraF[Nothing]
   private case class Not[A](value: A) extends BooleanAlgebraF[A]
   private case class And[A](lhs: A, rhs: A) extends BooleanAlgebraF[A]
   private case class Or[A](lhs: A, rhs: A) extends BooleanAlgebraF[A]
 
-  def inject[A](v: A): FBAlg[A] = Pure(v)
+  def inject[A](v: A): FBAlg[A] = Free.pure(v)
+
+  private val tru: FBAlg[Nothing] = Free.impure[BooleanAlgebraF, Nothing](Tru())
+  private val fls: FBAlg[Nothing] = Free.impure[BooleanAlgebraF, Nothing](Fls())
+  private def not[A](value: FBAlg[A]): FBAlg[A] = Free.impure(Not(value))
+  private def and[A](lhs: FBAlg[A], rhs: FBAlg[A]): FBAlg[A] = Free.impure(And(lhs, rhs))
+  private def or[A](lhs: FBAlg[A], rhs: FBAlg[A]): FBAlg[A] = Free.impure(Or(lhs, rhs))
 
   implicit val fixBAGFunctor: Functor[BooleanAlgebraF] = new Functor[BooleanAlgebraF] {
     override def map[A, B](fa: BooleanAlgebraF[A])(f: A => B): BooleanAlgebraF[B] = fa match {
@@ -30,11 +36,11 @@ object BooleanAlgebraF {
   }
 
   implicit def boolalg[A]: BooleanAlgebra[FBAlg[A]] = new BooleanAlgebra[FBAlg[A]] {
-    override def tru: FBAlg[A] = Impure(Tru())
-    override def fls: FBAlg[A] = Impure(Fls())
-    override def not(value: FBAlg[A]): FBAlg[A] = Impure(Not(value))
-    override def and(lhs: FBAlg[A], rhs: FBAlg[A]): FBAlg[A] = Impure(And(lhs, rhs))
-    override def or(lhs: FBAlg[A], rhs: FBAlg[A]): FBAlg[A] = Impure(Or(lhs, rhs))
+    def tru: FBAlg[A] = BooleanAlgebraF.tru
+    def fls: FBAlg[A] = BooleanAlgebraF.fls
+    def not(value: FBAlg[A]): FBAlg[A] = BooleanAlgebraF.not(value)
+    def and(lhs: FBAlg[A], rhs: FBAlg[A]): FBAlg[A] = BooleanAlgebraF.and(lhs, rhs)
+    def or(lhs: FBAlg[A], rhs: FBAlg[A]): FBAlg[A] = BooleanAlgebraF.or(lhs, rhs)
   }
 
   def interpreter[A: BooleanAlgebra]: FAlgebra[BooleanAlgebraF, A] = {
@@ -51,32 +57,32 @@ object BooleanAlgebraF {
       value match {
         case Pure(v) => Pure(v)
         case Impure(f2) => f2 match {
-          case Fls() => Impure(Tru())
-          case Tru() => Impure(Fls())
+          case Fls() => tru
+          case Tru() => fls
           case Not(v) => v
-          case optv => Impure(Not(Impure(optv)))
+          case optv => not(Impure(optv))
         }
       }
     case Or(lhs, rhs) =>
       lhs match {
         case Pure(pureLeft) => rhs match {
-          case Pure(pureRight) => Impure(Or(Pure(pureLeft), Pure(pureRight)))
+          case Pure(pureRight) => or(Pure(pureLeft), Pure(pureRight))
           case Impure(freeRight) => freeRight match {
             case Fls() => Pure(pureLeft)
-            case Tru() => Impure(Tru())
-            case right => Impure(Or(Pure(pureLeft), Impure(right)))
+            case Tru() => tru
+            case right => or(Pure(pureLeft), Impure(right))
           }
         }
         case Impure(freeLeft) => freeLeft match {
           case Fls() => rhs
-          case Tru() => Impure(Tru())
+          case Tru() => tru
           case left =>
             rhs match {
-              case Pure(pureRight) => Impure(Or(Impure(left), Pure(pureRight)))
+              case Pure(pureRight) => or(Impure(left), Pure(pureRight))
               case Impure(freeRight) => freeRight match {
                 case Fls() => Impure(left)
-                case Tru() => Impure(Tru())
-                case right => Impure(Or(Impure(left), Impure(right)))
+                case Tru() => tru
+                case right => or(Impure(left), Impure(right))
               }
             }
         }
@@ -84,23 +90,23 @@ object BooleanAlgebraF {
     case And(lhs, rhs) =>
       lhs match {
         case Pure(pureLeft) => rhs match {
-          case Pure(pureRight) => Impure(And(Pure(pureLeft), Pure(pureRight)))
+          case Pure(pureRight) => and(Pure(pureLeft), Pure(pureRight))
           case Impure(freeRight) => freeRight match {
-            case Fls() => Impure(Fls())
+            case Fls() => fls
             case Tru() => Pure(pureLeft)
-            case right => Impure(And(Pure(pureLeft), Impure(right)))
+            case right => and(Pure(pureLeft), Impure(right))
           }
         }
         case Impure(freeLeft) => freeLeft match {
-          case Fls() => Impure(Fls())
+          case Fls() => fls
           case Tru() => rhs
           case left =>
             rhs match {
-              case Pure(pureRight) => Impure(And(Impure(left), Pure(pureRight)))
+              case Pure(pureRight) => and(Impure(left), Pure(pureRight))
               case Impure(freeRight) => freeRight match {
-                case Fls() => Impure(Fls())
+                case Fls() => fls
                 case Tru() => Impure(left)
-                case right => Impure(And(Impure(left), Impure(right)))
+                case right => and(Impure(left), Impure(right))
               }
             }
         }

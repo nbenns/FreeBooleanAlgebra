@@ -2,11 +2,10 @@ name := "FreeBooleanAlgebra"
 
 version := "0.1"
 
-scalaVersion := "2.12.4"
+scalaVersion := "2.13.1"
 
-addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.8")
+addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full)
 
 scalacOptions ++= Seq(
-  "-Ypartial-unification",
   "-feature"
 )
