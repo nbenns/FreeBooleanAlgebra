@@ -6,16 +6,16 @@ import effect.Functor._
 import recursion.Free._
 import recursion.{FAlgebra, Free}
 
-sealed trait BooleanAlgebraF[+A]
+sealed trait BooleanAlgebraF[+A] extends Product with Serializable
 
 object BooleanAlgebraF {
   type FBAlg[+A] = Free[BooleanAlgebraF, A]
 
-  private case object Tru                    extends BooleanAlgebraF[Nothing]
-  private case object Fls                    extends BooleanAlgebraF[Nothing]
-  private case class  Not[A](value: A)       extends BooleanAlgebraF[A]
-  private case class  And[A](lhs: A, rhs: A) extends BooleanAlgebraF[A]
-  private case class  Or[A](lhs: A, rhs: A)  extends BooleanAlgebraF[A]
+  private final case object Tru                    extends BooleanAlgebraF[Nothing]
+  private final case object Fls                    extends BooleanAlgebraF[Nothing]
+  private final case class  Not[A](value: A)       extends BooleanAlgebraF[A]
+  private final case class  And[A](lhs: A, rhs: A) extends BooleanAlgebraF[A]
+  private final case class  Or[A](lhs: A, rhs: A)  extends BooleanAlgebraF[A]
 
   def inject[A](v: A): FBAlg[A] = Pure(v)
 
