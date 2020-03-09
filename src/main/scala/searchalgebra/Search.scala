@@ -1,6 +1,6 @@
 package searchalgebra
 
-trait Search[A]
+trait Search[A] extends Product with Serializable
 
 object Search {
 

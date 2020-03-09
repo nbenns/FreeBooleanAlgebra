@@ -5,10 +5,10 @@ import boolalgebra.BooleanAlgebraF
 import boolalgebra.BooleanAlgebraF.FBAlg
 
 object SiteSearch {
-  private case class Term(t: String) extends Search[Site]
-  private case class After(date: ZonedDateTime) extends Search[Site]
-  private case class InText(t: String) extends Search[Site]
-  private case class InUrl(url: String) extends Search[Site]
+  private final case class Term(t: String) extends Search[Site]
+  private final case class After(date: ZonedDateTime) extends Search[Site]
+  private final case class InText(t: String) extends Search[Site]
+  private final case class InUrl(url: String) extends Search[Site]
 
   def term(t: String): FBAlg[Search[Site]] = BooleanAlgebraF.inject(Term(t))
   def after(date: ZonedDateTime): FBAlg[Search[Site]] = BooleanAlgebraF.inject(After(date))
