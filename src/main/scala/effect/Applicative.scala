@@ -1,7 +1,5 @@
 package effect
 
-import scala.language.higherKinds
-
 trait Applicative[F[_]] extends Functor[F] {
   def pure[A](a: A): F[A]
 
@@ -12,13 +10,13 @@ trait Applicative[F[_]] extends Functor[F] {
 }
 
 object Applicative {
-  def apply[F[_]](implicit ap: Applicative[F]): Applicative[F] = ap
+  def apply[F[_]](using ap: Applicative[F]): Applicative[F] = ap
 
-  implicit class ApplicativeOps[F[_]: Applicative, A, B](fab: F[A => B]) {
+  extension [F[_]: Applicative, A, B](fab: F[A => B]) {
     def ap: F[A] => F[B] = Applicative[F].ap(_)(fab)
   }
 
-  implicit class LaxMonoidalOps[F[_]: Applicative, A](fa: F[A]) {
+  extension [F[_]: Applicative, A](fa: F[A]) {
     def zip[B]: F[B] => F[(A, B)] = Applicative[F].zip(fa, _)
   }
 }

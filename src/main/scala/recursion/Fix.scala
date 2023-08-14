@@ -1,16 +1,18 @@
 package recursion
 
-import scala.language.higherKinds
+import effect.Functor
+import Functor.*
 
-case class Fix[F[_]](unFix: F[Fix[F]])
+case class Fix[F[+_]](unFix: F[Fix[F]]) {
+  def cata[A](falg: FAlgebra[F, A])(using Functor[F]): A = Fix.cata(this, falg)
+}
 
 object Fix {
-  import effect.Functor
-  import Functor._
+  def cata[F[+_]: Functor, A](ff: Fix[F], f: FAlgebra[F, A]): A = f(ff.unFix.map(cata(_, f)))
 
-  def cataMorphism[F[_]: Functor, A](ff: Fix[F], f: FAlgebra[F, A]): A = f(ff.unFix.map(cataMorphism(_, f)))
+  def ana[F[+_] : Functor, A](seed: A, calg: CoFAlgebra[F, A]): Fix[F] =
+    Fix(calg(seed).map(ana(_, calg)))
 
-  implicit class FixOps[F[_]: Functor](ff: Fix[F]) {
-    def cata[A](f: FAlgebra[F, A]): A = cataMorphism[F, A](ff, f)
-  }
+  def hylo[F[+_] : Functor, A, B](seed: A, calg: CoFAlgebra[F, A], falg: FAlgebra[F, B]): B =
+    falg(calg(seed).map(hylo(_, calg, falg)))
 }

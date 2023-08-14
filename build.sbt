@@ -2,10 +2,13 @@ name := "FreeBooleanAlgebra"
 
 version := "0.1"
 
-scalaVersion := "2.13.1"
+scalaVersion := "3.3.0"
 
-addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full)
+//addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full)
 
 scalacOptions ++= Seq(
-  "-feature"
+  "-feature",
+  "-Ykind-projector:underscores",
+  "-source:future",
+  "-deprecation"
 )

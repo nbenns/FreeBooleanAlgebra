@@ -1,32 +1,32 @@
 package boolalgebra
 
-import effect.CoFlatMap._
+import effect.CoFlatMap.*
 import effect.Functor
-import effect.Functor._
-import recursion.Free._
+import effect.Functor.*
+import recursion.Free.*
 import recursion.{FAlgebra, Free}
 
-sealed trait BooleanAlgebraF[+A] extends Product with Serializable
+enum BooleanAlgebraF[+A] {
+  case Tru
+  case Fls
+  case Not(value: A)
+  case And(lhs: A, rhs: A)
+  case Or(lhs: A, rhs: A)
+}
 
 object BooleanAlgebraF {
-  type FBAlg[+A] = Free[BooleanAlgebraF, A]
-
-  private final case object Tru                    extends BooleanAlgebraF[Nothing]
-  private final case object Fls                    extends BooleanAlgebraF[Nothing]
-  private final case class  Not[A](value: A)       extends BooleanAlgebraF[A]
-  private final case class  And[A](lhs: A, rhs: A) extends BooleanAlgebraF[A]
-  private final case class  Or[A](lhs: A, rhs: A)  extends BooleanAlgebraF[A]
+  private type FBAlg[+A] = Free[BooleanAlgebraF, A]
 
   def inject[A](v: A): FBAlg[A] = Pure(v)
 
-  private val tru: Free[BooleanAlgebraF, Nothing] = Impure[BooleanAlgebraF, Nothing](Tru)
-  private val fls: Free[BooleanAlgebraF, Nothing] = Impure[BooleanAlgebraF, Nothing](Fls)
+  private def tru: Free[BooleanAlgebraF, Nothing] = Impure[BooleanAlgebraF, Nothing](Tru)
+  private def fls: Free[BooleanAlgebraF, Nothing] = Impure[BooleanAlgebraF, Nothing](Fls)
   private def not[A](value: FBAlg[A]): FBAlg[A] = Impure(Not(value))
   private def and[A](lhs: FBAlg[A], rhs: FBAlg[A]): FBAlg[A] = Impure(And(lhs, rhs))
   private def or[A](lhs: FBAlg[A], rhs: FBAlg[A]): FBAlg[A] = Impure(Or(lhs, rhs))
 
-  implicit val fixBAGFunctor: Functor[BooleanAlgebraF] = new Functor[BooleanAlgebraF] {
-    override def map[A, B](fa: BooleanAlgebraF[A])(f: A => B): BooleanAlgebraF[B] = fa match {
+  given Functor[BooleanAlgebraF] with {
+    def map[A, B](fa: BooleanAlgebraF[A])(f: A => B): BooleanAlgebraF[B] = fa match {
       case Tru => Tru
       case Fls => Fls
       case Not(value) => Not(f(value))
@@ -35,7 +35,7 @@ object BooleanAlgebraF {
     }
   }
 
-  implicit def boolalg[A]: BooleanAlgebra[FBAlg[A]] = new BooleanAlgebra[FBAlg[A]] {
+  given [A]: BooleanAlgebra[FBAlg[A]] with {
     def tru: FBAlg[A] = BooleanAlgebraF.tru
     def fls: FBAlg[A] = BooleanAlgebraF.fls
     def not(value: FBAlg[A]): FBAlg[A] = BooleanAlgebraF.not(value)
@@ -105,9 +105,29 @@ object BooleanAlgebraF {
     case other => Impure(other)
   }
 
-  def interpret[A: BooleanAlgebra](ff: FBAlg[A]): A = ff.cata(interpreter[A])
-
-  def run[A, B: BooleanAlgebra](ff: FBAlg[A])(f: A => B): B = ff.map(f).cata(interpreter[B])
-
   def optimize[A](fbAlg: FBAlg[A]): FBAlg[A] = fbAlg.duplicate.cata(optimizer)
+
+  def partial[A, B](f: A => Option[B])(fb: FBAlg[A])(using b: BooleanAlgebra[B]): Either[FBAlg[A], B] =
+    fb.map(a => f(a).toRight(Pure(a))).cata {
+      case Tru => Right(b.tru)
+      case Fls => Right(b.fls)
+      case Not(value) => value match {
+        case Left(v) => Left(not(v))
+        case Right(v) => Right(b.not(v))
+      }
+      case And(lhs, rhs) =>
+        (lhs, rhs) match {
+          case (Left(l), Left(r)) => Left(and(l, r))
+          case (Left(l), Right(r)) => if (r == b.fls) Right(b.fls) else Left(l)
+          case (Right(l), Left(r)) => if (l == b.fls) Right(b.fls) else Left(r)
+          case (Right(l), Right(r)) => Right(b.and(l, r))
+        }
+      case Or(lhs, rhs) =>
+        (lhs, rhs) match {
+          case (Left(l), Left(r)) => Left(or(l, r))
+          case (Left(l), Right(r)) => if (r == b.tru) Right(b.tru) else Left(l)
+          case (Right(l), Left(r)) => if (l == b.tru) Right(b.tru) else Left(r)
+          case (Right(l), Right(r)) => Right(b.or(l, r))
+        }
+    }
 }

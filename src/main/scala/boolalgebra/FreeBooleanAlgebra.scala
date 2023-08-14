@@ -7,22 +7,24 @@ import effect.Functor
  * that we don't have typeclass instances for.
  * That way we can perform BooleanAlgebra operations on the contained datatype.
  */
-sealed trait FreeBooleanAlgebra[+A]
-
-object FreeBooleanAlgebra {
+enum FreeBooleanAlgebra[+A] {
   /*
    *  Define all of the objects and functions in the BooleanAlgebra typeclass as Data.
    *  The free version is just a data structure describing the operations to perform.
    *  This gives us the ability to manipulate it before we execute it.
    */
-  private case object Tru extends FreeBooleanAlgebra[Nothing]
-  private case object Fls extends FreeBooleanAlgebra[Nothing]
-  private case class Not[A](value: FreeBooleanAlgebra[A]) extends FreeBooleanAlgebra[A]
-  private case class And[A](lhs: FreeBooleanAlgebra[A], rhs: FreeBooleanAlgebra[A]) extends FreeBooleanAlgebra[A]
-  private case class Or[A](lhs: FreeBooleanAlgebra[A], rhs: FreeBooleanAlgebra[A]) extends FreeBooleanAlgebra[A]
 
+  case Tru extends FreeBooleanAlgebra[Nothing]
+  case Fls extends FreeBooleanAlgebra[Nothing]
+  case Not(value: FreeBooleanAlgebra[A]) extends FreeBooleanAlgebra[A]
+  case And(lhs: FreeBooleanAlgebra[A], rhs: FreeBooleanAlgebra[A]) extends FreeBooleanAlgebra[A]
+  case Or(lhs: FreeBooleanAlgebra[A], rhs: FreeBooleanAlgebra[A]) extends FreeBooleanAlgebra[A]
+  case Inject(value: A) extends FreeBooleanAlgebra[A]
+}
+
+object FreeBooleanAlgebra {
   // Add Inject to inject values into the free version of the algebra from the outside world
-  private case class Inject[A](value: A) extends FreeBooleanAlgebra[A]
+  //  private case class Inject[A](value: A) extends FreeBooleanAlgebra[A]
 
   def inject[A](a: A): FreeBooleanAlgebra[A] = Inject(a)
 
@@ -30,7 +32,7 @@ object FreeBooleanAlgebra {
    * The Free version of the algebra needs to have a valid typeclass instance of BooleanAlgebra
    * Here we simply define the implementation to use the data types we have created above.
    */
-  implicit def freeBooleanAlgebra[A]: BooleanAlgebra[FreeBooleanAlgebra[A]] = new BooleanAlgebra[FreeBooleanAlgebra[A]] {
+  given [A]: BooleanAlgebra[FreeBooleanAlgebra[A]] = new BooleanAlgebra[FreeBooleanAlgebra[A]] {
     override def tru: FreeBooleanAlgebra[A] = Tru
     override def fls: FreeBooleanAlgebra[A] = Fls
     override def not(value: FreeBooleanAlgebra[A]): FreeBooleanAlgebra[A] = Not(value)
@@ -43,7 +45,7 @@ object FreeBooleanAlgebra {
    * This unwraps the structure until it finds a value, then executes the conversion function
    * and rewraps the structure
    */
-  implicit val freeBooleanAlgebraFunctor: Functor[FreeBooleanAlgebra] = new Functor[FreeBooleanAlgebra] {
+  given Functor[FreeBooleanAlgebra] = new Functor[FreeBooleanAlgebra] {
     override def map[A, B](fa: FreeBooleanAlgebra[A])(f: A => B): FreeBooleanAlgebra[B] = fa match {
       case Inject(value) => Inject(f(value))
       case Tru => Tru

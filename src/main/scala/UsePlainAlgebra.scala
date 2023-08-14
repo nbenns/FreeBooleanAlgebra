@@ -1,10 +1,11 @@
-import boolalgebra.BooleanAlgebra._
+import boolalgebra.BooleanAlgebra
+import boolalgebra.BooleanAlgebra.*
 import boolalgebra.instances.IntBooleanAlgebra
 
 import scala.language.postfixOps
 
 object UsePlainAlgebra extends App {
-  implicit val intBoolAlg = IntBooleanAlgebra
+  implicit val intBoolAlg: BooleanAlgebra[Int] = IntBooleanAlgebra
 
   /*
    * We can define it using the helper functions

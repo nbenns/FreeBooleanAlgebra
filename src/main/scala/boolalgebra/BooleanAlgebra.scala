@@ -31,7 +31,7 @@ object BooleanAlgebra {
   /*
    * Extension methods to provide DSL sugar
    */
-  implicit class BooleanAlgebraOps[A: BooleanAlgebra](a: A) {
+  extension [A: BooleanAlgebra](a: A) {
     def unary_! : A = BooleanAlgebra[A].not(a)
     def &(b: A): A = BooleanAlgebra[A].and(a, b)
     def |(b: A): A = BooleanAlgebra[A].or(a, b)
